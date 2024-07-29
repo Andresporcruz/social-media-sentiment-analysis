@@ -35,3 +35,45 @@ We will use the [Sentiment140 dataset](https://www.kaggle.com/datasets/krishbais
 - **Martin Wall**: Data preprocessing and interface development
 - **Andres Portillo**: Machine Learning model training
 - **Maiah Jaffa**: Data analysis and visualization
+
+
+## Setup Instructions
+
+Follow these steps to set up the project on your local machine:
+
+### 1. Clone the Repository
+
+Open a terminal and navigate to the directory where you want to clone the repository. Then, run the following commands:
+
+git clone git@github.com:Andresporcruz/social-media-sentiment-analysis.git
+cd social-media-sentiment-analysis
+
+### 2. Set Up the Virtual Environment
+Create and activate a virtual environment:
+
+python3 -m venv venv
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+
+### 3. Install Dependencies
+Install the required Python packages from requirements.txt:
+
+pip install -r requirements.txt
+
+### 4. Make Changes to the Project
+Open the project in your preferred text editor or IDE (e.g., PyCharm, VSCode). Make your changes to the code.
+
+### 5. Add and Commit Changes
+After making changes, add the changes to the staging area:
+
+git add .
+Commit the changes 
+
+git commit -m "Your descriptive commit message"
+
+6. Push Changes to GitHub
+Push your committed changes to the remote repository:
+
+git push origin main
+
+git pull origin main
+Set Up SSH Keys: Ensure that your SSH key is set up correctly for GitHub to avoid permission issues.
