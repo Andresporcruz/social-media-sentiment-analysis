@@ -70,7 +70,7 @@ Commit the changes
 
 git commit -m "Your descriptive commit message"
 
-6. Push Changes to GitHub
+### 6. Push Changes to GitHub
 Push your committed changes to the remote repository:
 
 git push origin main
