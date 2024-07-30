@@ -46,6 +46,7 @@ Follow these steps to set up the project on your local machine:
 Open a terminal and navigate to the directory where you want to clone the repository. Then, run the following commands:
 
 git clone git@github.com:Andresporcruz/social-media-sentiment-analysis.git
+
 cd social-media-sentiment-analysis
 
 ### 2. Set Up the Virtual Environment
