@@ -2,6 +2,10 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <fstream>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <array>
 
 void set_text_position(sf::Text& text, std::string& text_string) {
     text.setString(text_string + "|");
@@ -15,7 +19,7 @@ void set_text_position(sf::Text& text, std::string& text_string) {
     }
 }
 
-void initialize_text(const int& window_width, const int& window_height, const sf::RectangleShape& text_entry, sf::Font& font, sf::Text& instructions_text, sf::Text& input_text, sf::Text& score_notification, sf::Text& sentiment_score_text) {
+void initialize_text(const int& window_width, const int& window_height, const sf::RectangleShape& text_entry, const sf::RectangleShape& text_entered, sf::Font& font, sf::Text& instructions_text, sf::Text& input_text, sf::Text& score_notification, sf::Text& previous_phrase, sf::Text& sentiment_score_text) {
     font.loadFromFile("font.ttf");
 
     instructions_text.setFont(font);
@@ -24,7 +28,7 @@ void initialize_text(const int& window_width, const int& window_height, const sf
     instructions_text.setFillColor(sf::Color::White);
     instructions_text.setStyle(sf::Text::Bold);
     instructions_text.setOrigin(instructions_text.getLocalBounds().left + instructions_text.getLocalBounds().width / 2.0f, instructions_text.getLocalBounds().top + instructions_text.getLocalBounds().height / 2.0f);
-    instructions_text.setPosition(sf::Vector2f((window_width - instructions_text.getPosition().x) / 2, window_height / 6 - instructions_text.getPosition().y));
+    instructions_text.setPosition(sf::Vector2f((window_width - instructions_text.getPosition().x) / 2, window_height / 8 - instructions_text.getPosition().y));
 
     input_text.setFont(font);
     input_text.setString("|");
@@ -33,12 +37,18 @@ void initialize_text(const int& window_width, const int& window_height, const sf
     input_text.setPosition(sf::Vector2f(text_entry.getPosition().x + 20, text_entry.getPosition().y + 20));
 
     score_notification.setFont(font);
-    score_notification.setString("This phrase has a sentiment score of:");
+    score_notification.setString("\t\tThe phrase\n\n\n\n\n\n\n\n\nhas a sentiment score of:");
     score_notification.setCharacterSize(24);
     score_notification.setFillColor(sf::Color::White);
     score_notification.setStyle(sf::Text::Bold);
     score_notification.setOrigin(score_notification.getLocalBounds().left + score_notification.getLocalBounds().width / 2.0f, score_notification.getLocalBounds().top + score_notification.getLocalBounds().height / 2.0f);
-    score_notification.setPosition(sf::Vector2f((window_width - score_notification.getPosition().x) / 2, 4 * window_height / 7 + score_notification.getPosition().y));
+    score_notification.setPosition(sf::Vector2f((window_width - score_notification.getPosition().x) / 2, 3 * window_height / 5 + score_notification.getPosition().y));
+
+    previous_phrase.setFont(font);
+    previous_phrase.setString("");
+    previous_phrase.setCharacterSize(18);
+    previous_phrase.setFillColor(sf::Color::Black);
+    previous_phrase.setPosition(sf::Vector2f(text_entry.getPosition().x + 20, text_entered.getPosition().y + 20));
 
     sentiment_score_text.setFont(font);
     sentiment_score_text.setString("N/A");
@@ -46,7 +56,7 @@ void initialize_text(const int& window_width, const int& window_height, const sf
     sentiment_score_text.setFillColor(sf::Color::White);
     sentiment_score_text.setStyle(sf::Text::Bold);
     sentiment_score_text.setOrigin(sentiment_score_text.getLocalBounds().left + sentiment_score_text.getLocalBounds().width / 2.0f, sentiment_score_text.getLocalBounds().top + sentiment_score_text.getLocalBounds().height / 2.0f);
-    sentiment_score_text.setPosition(sf::Vector2f((window_width - sentiment_score_text.getPosition().x) / 2, 5 * window_height / 7 + sentiment_score_text.getPosition().y));
+    sentiment_score_text.setPosition(sf::Vector2f((window_width - sentiment_score_text.getPosition().x) / 2, 6 * window_height / 7 + sentiment_score_text.getPosition().y));
 
 }
 
@@ -58,17 +68,22 @@ int main() {
     sf::Vector2f text_entry_dimensions(1000, 150);
     sf::RectangleShape text_entry(text_entry_dimensions);
     text_entry.setFillColor(sf::Color::White);
-    text_entry.setPosition(sf::Vector2f((window_width - text_entry_dimensions.x) / 2, window_height / 4));
+    text_entry.setPosition(sf::Vector2f((window_width - text_entry_dimensions.x) / 2, window_height / 6));
+
+    sf::RectangleShape text_entered(text_entry_dimensions);
+    text_entered.setFillColor(sf::Color::White);
+    text_entered.setPosition(sf::Vector2f((window_width - text_entry_dimensions.x) / 2, window_height / 2));
 
     sf::Font font;
     sf::Text instructions_text;
     sf::Text input_text;
     std::string input_string = "";
     sf::Text score_notification;
+    sf::Text previous_phrase;
     sf::Text sentiment_score_text;
     std::string sentiment_score_string = "N/A";
 
-    initialize_text(window_width, window_height, text_entry, font, instructions_text, input_text, score_notification, sentiment_score_text);
+    initialize_text(window_width, window_height, text_entry, text_entered, font, instructions_text, input_text, score_notification, previous_phrase, sentiment_score_text);
 
     while (window.isOpen()) {
         sf::Event event;
@@ -90,6 +105,25 @@ int main() {
                 }
                 set_text_position(input_text, input_string);
             }
+            if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Return) {
+                std::string command = "python C:\\Users\\readt\\source\\repos\\social-media-sentiment-analysis\\src\\predict.py " + input_string;
+                std::array<char, 128> buffer;
+                std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.c_str(), "r"), _pclose);
+                if (!pipe) {
+                    throw std::runtime_error("popen() failed!");
+                }
+                while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+                    sentiment_score_string = buffer.data();
+                }
+                sentiment_score_text.setString(sentiment_score_string);
+                sentiment_score_text.setOrigin(sentiment_score_text.getLocalBounds().left + sentiment_score_text.getLocalBounds().width / 2.0f, sentiment_score_text.getLocalBounds().top + sentiment_score_text.getLocalBounds().height / 2.0f);
+                //sentiment_score_text.setPosition(sf::Vector2f((window_width - sentiment_score_text.getPosition().x) / 2, 5 * window_height / 7 + sentiment_score_text.getPosition().y));
+                std::cout << sentiment_score_string << std::endl;
+
+                previous_phrase.setString(input_string);
+                input_string = "";
+                set_text_position(input_text, input_string);
+            }
         }
 
         window.clear();
@@ -97,6 +131,8 @@ int main() {
         window.draw(instructions_text);
         window.draw(input_text);
         window.draw(score_notification);
+        window.draw(text_entered);
+        window.draw(previous_phrase);
         window.draw(sentiment_score_text);
         window.display();
     }

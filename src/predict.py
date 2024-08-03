@@ -1,4 +1,6 @@
 import joblib
+import argparse
+import json
 
 def load_model():
     model = joblib.load('model/sentiment_model.pkl')
@@ -11,8 +13,20 @@ def predict(texts, model, vectorizer):
     return predictions
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'texts',
+        nargs='+'
+    )
+    args = parser.parse_args()
+    phrase = ' '.join(args.texts)
+
     model, vectorizer = load_model()
-    texts = ["I love this product!", "This restaurant was horrible"]
-    predictions = predict(texts, model, vectorizer)
-    for text, prediction in zip(texts, predictions):
+    #texts = ["I love this product!", "This restaurant was horrible", "I like tacos", "not", "I don't like tacos", "tacos", "I do not hate tacos"]
+    predictions = predict([phrase], model, vectorizer)
+    for text, prediction in zip([phrase], predictions):
         print(f"Text: {text} -> Sentiment: {prediction}")
+
+    sentiment_scores = predictions.astype(int).tolist()
+
+    print(json.dumps(sentiment_scores[0]))
