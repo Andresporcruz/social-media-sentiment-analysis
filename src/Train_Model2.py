@@ -6,7 +6,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
 from collections import defaultdict
 
-
+# Custom implementation of a word weighting algorithm
 class CustomWordWeightingAlgorithm:
     def __init__(self):
         self.word_weights = defaultdict(self.default_weight)
@@ -15,6 +15,7 @@ class CustomWordWeightingAlgorithm:
     def default_weight(self):
         return [0, 0]
 
+    # Fit the model on the training data
     def fit(self, X, y):
         positive_count = 0
         negative_count = 0
@@ -33,6 +34,7 @@ class CustomWordWeightingAlgorithm:
         self.positive_prob = positive_count / self.total_words
         self.negative_prob = negative_count / self.total_words
 
+    # Predict sentiments for the given data
     def predict(self, X):
         predictions = []
         for text in X:
@@ -54,7 +56,7 @@ class CustomWordWeightingAlgorithm:
                 predictions.append(0)
         return predictions
 
-
+# Load the data from CSV files
 def load_data():
     print("Loading data...")
     X_train = pd.read_csv(
@@ -83,7 +85,7 @@ def load_data():
 
     return X_train, X_test, y_train, y_test
 
-
+# Clean the text data
 def clean_text(text):
     text = re.sub(r'http\S+', '', text)  # Remove URLs
     text = re.sub(r'<.*?>', '', text)  # Remove HTML tags
@@ -92,14 +94,14 @@ def clean_text(text):
     text = re.sub(r'\s+', ' ', text).strip()  # Remove extra white spaces
     return text
 
-
+# Preprocess the data by cleaning the text
 def preprocess_data(X):
     print("Preprocessing text data...")
     X['clean_text'] = X['text'].apply(clean_text)
     print("Text data preprocessed.")
     return X
 
-
+# Align the indices of X and y data
 def align_data(X, y):
     print("Aligning X and y indices...")
     common_indices = X.index.intersection(y.index)
@@ -108,7 +110,7 @@ def align_data(X, y):
     print(f"Aligned X length: {len(aligned_X)}, Aligned y length: {len(aligned_y)}")
     return aligned_X, aligned_y
 
-
+# Train the model
 def train_model(X_train, y_train):
     print("Vectorizing training data...")
     vectorizer = CountVectorizer(max_df=0.9, ngram_range=(1, 2))
@@ -121,7 +123,7 @@ def train_model(X_train, y_train):
     print("Model trained.")
     return model, vectorizer
 
-
+# Evaluate the model
 def evaluate_model(model, vectorizer, X_test, y_test):
     print("Vectorizing test data...")
     X_test_bow = vectorizer.transform(X_test.squeeze())
@@ -140,14 +142,14 @@ def evaluate_model(model, vectorizer, X_test, y_test):
 
     return accuracy, precision, recall, cm
 
-
-def save_model(model, vectorizer, model_path='model/sentiment_model.pkl', vectorizer_path='model/vectorizer.pkl'):
+# Save the model and vectorizer to files
+def save_model(model, vectorizer, model_path='model/simple_sentiment_model.pkl', vectorizer_path='model/simple_vectorizer.pkl'):
     joblib.dump(model, model_path)
     joblib.dump(vectorizer, vectorizer_path)
     print(f"Model saved to {model_path}")
     print(f"Vectorizer saved to {vectorizer_path}")
 
-
+# Main script execution
 if __name__ == "__main__":
     X_train, X_test, y_train, y_test = load_data()
 
@@ -163,6 +165,7 @@ if __name__ == "__main__":
         print("Aligning testing data...")
         X_test, y_test = align_data(X_test, y_test)
 
+    # Train and evaluate the model if lengths match
     if len(X_train) == len(y_train) and len(X_test) == len(y_test):
         model, vectorizer = train_model(X_train, y_train)
         accuracy, precision, recall, cm = evaluate_model(model, vectorizer, X_test, y_test)

@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, confu
 from custom_naive_bayes import CustomNaiveBayes
 import joblib
 
+# Function to load and preprocess the data
 def load_data():
     print("Loading data...")
     X_train = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/X_train.csv')
@@ -29,6 +30,7 @@ def load_data():
 
     return X_train, X_test, y_train, y_test
 
+# Function to align X and y data indices
 def align_data(X, y):
     print("Aligning X and y indices...")
     common_indices = X.index.intersection(y.index)
@@ -37,6 +39,7 @@ def align_data(X, y):
     print(f"Aligned X length: {len(aligned_X)}, Aligned y length: {len(aligned_y)}")
     return aligned_X, aligned_y
 
+# Function to train the model
 def train_model(X_train, y_train):
     print("Vectorizing training data...")
     vectorizer = TfidfVectorizer(max_df=0.9, ngram_range=(1, 2))
@@ -49,6 +52,7 @@ def train_model(X_train, y_train):
     print("Model trained.")
     return model, vectorizer
 
+# Function to evaluate the model
 def evaluate_model(model, vectorizer, X_test, y_test):
     print("Vectorizing test data...")
     X_test_tfidf = vectorizer.transform(X_test.squeeze())
@@ -67,12 +71,14 @@ def evaluate_model(model, vectorizer, X_test, y_test):
 
     return accuracy, precision, recall, cm
 
-def save_model(model, vectorizer, model_path='model/sentiment_model.pkl', vectorizer_path='model/vectorizer.pkl'):
+# Function to save the model and vectorizer
+def save_model(model, vectorizer, model_path='model/nb_sentiment_model.pkl', vectorizer_path='model/nb_vectorizer.pkl'):
     joblib.dump(model, model_path)
     joblib.dump(vectorizer, vectorizer_path)
     print(f"Model saved to {model_path}")
     print(f"Vectorizer saved to {vectorizer_path}")
 
+# Main script execution
 if __name__ == "__main__":
     X_train, X_test, y_train, y_test = load_data()
 
@@ -88,6 +94,7 @@ if __name__ == "__main__":
         print("Aligning testing data...")
         X_test, y_test = align_data(X_test, y_test)
 
+    # Train and evaluate the model if lengths match
     if len(X_train) == len(y_train) and len(X_test) == len(y_test):
         model, vectorizer = train_model(X_train, y_train)
         accuracy, precision, recall, cm = evaluate_model(model, vectorizer, X_test, y_test)
