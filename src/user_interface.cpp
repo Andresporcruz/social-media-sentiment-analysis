@@ -19,7 +19,7 @@ void set_text_position(sf::Text& text, std::string& text_string) {
     }
 }
 
-void initialize_text(const int& window_width, const int& window_height, const sf::RectangleShape& text_entry, const sf::RectangleShape& text_entered, sf::Font& font, sf::Text& instructions_text, sf::Text& input_text, sf::Text& score_notification, sf::Text& previous_phrase, sf::Text& sentiment_score_text) {
+void initialize_text(const int& window_width, const int& window_height, const sf::RectangleShape& text_entry, const sf::RectangleShape& text_entered, sf::Font& font, sf::Text& instructions_text, sf::Text& input_text, sf::Text& score_notification, sf::Text& previous_phrase, sf::Text& sentiment_score_text, sf::Text& simple_algorithm, sf::Text& multinomial_algorithm) {
     font.loadFromFile("font.ttf");
 
     instructions_text.setFont(font);
@@ -28,7 +28,7 @@ void initialize_text(const int& window_width, const int& window_height, const sf
     instructions_text.setFillColor(sf::Color::White);
     instructions_text.setStyle(sf::Text::Bold);
     instructions_text.setOrigin(instructions_text.getLocalBounds().left + instructions_text.getLocalBounds().width / 2.0f, instructions_text.getLocalBounds().top + instructions_text.getLocalBounds().height / 2.0f);
-    instructions_text.setPosition(sf::Vector2f((window_width - instructions_text.getPosition().x) / 2, window_height / 8 - instructions_text.getPosition().y));
+    instructions_text.setPosition(sf::Vector2f((window_width - instructions_text.getPosition().x) / 2, window_height / 8 - instructions_text.getPosition().y + 100));
 
     input_text.setFont(font);
     input_text.setString("|");
@@ -42,7 +42,7 @@ void initialize_text(const int& window_width, const int& window_height, const sf
     score_notification.setFillColor(sf::Color::White);
     score_notification.setStyle(sf::Text::Bold);
     score_notification.setOrigin(score_notification.getLocalBounds().left + score_notification.getLocalBounds().width / 2.0f, score_notification.getLocalBounds().top + score_notification.getLocalBounds().height / 2.0f);
-    score_notification.setPosition(sf::Vector2f((window_width - score_notification.getPosition().x) / 2, 3 * window_height / 5 + score_notification.getPosition().y));
+    score_notification.setPosition(sf::Vector2f((window_width - score_notification.getPosition().x) / 2, 3 * window_height / 5 + score_notification.getPosition().y + 100));
 
     previous_phrase.setFont(font);
     previous_phrase.setString("");
@@ -56,7 +56,23 @@ void initialize_text(const int& window_width, const int& window_height, const sf
     sentiment_score_text.setFillColor(sf::Color::White);
     sentiment_score_text.setStyle(sf::Text::Bold);
     sentiment_score_text.setOrigin(sentiment_score_text.getLocalBounds().left + sentiment_score_text.getLocalBounds().width / 2.0f, sentiment_score_text.getLocalBounds().top + sentiment_score_text.getLocalBounds().height / 2.0f);
-    sentiment_score_text.setPosition(sf::Vector2f((window_width - sentiment_score_text.getPosition().x) / 2, 6 * window_height / 7 + sentiment_score_text.getPosition().y));
+    sentiment_score_text.setPosition(sf::Vector2f((window_width - sentiment_score_text.getPosition().x) / 2, 6 * window_height / 7 + sentiment_score_text.getPosition().y + 70));
+
+    simple_algorithm.setFont(font);
+    simple_algorithm.setString("Simple\nAlgorithm");
+    simple_algorithm.setCharacterSize(30);
+    simple_algorithm.setFillColor(sf::Color::White);
+    simple_algorithm.setStyle(sf::Text::Bold);
+    simple_algorithm.setOrigin(simple_algorithm.getLocalBounds().left + simple_algorithm.getLocalBounds().width / 2.0f, simple_algorithm.getLocalBounds().top + simple_algorithm.getLocalBounds().height / 2.0f);
+    simple_algorithm.setPosition(sf::Vector2f(window_width / 5, 100));
+
+    multinomial_algorithm.setFont(font);
+    multinomial_algorithm.setString("Multinomial\nAlgorithm");
+    multinomial_algorithm.setCharacterSize(30);
+    multinomial_algorithm.setFillColor(sf::Color::White);
+    multinomial_algorithm.setStyle(sf::Text::Bold);
+    multinomial_algorithm.setOrigin(multinomial_algorithm.getLocalBounds().left + multinomial_algorithm.getLocalBounds().width / 2.0f, multinomial_algorithm.getLocalBounds().top + multinomial_algorithm.getLocalBounds().height / 2.0f);
+    multinomial_algorithm.setPosition(sf::Vector2f(4 * window_width / 5, 100));
 
 }
 
@@ -68,11 +84,18 @@ int main() {
     sf::Vector2f text_entry_dimensions(1000, 150);
     sf::RectangleShape text_entry(text_entry_dimensions);
     text_entry.setFillColor(sf::Color::White);
-    text_entry.setPosition(sf::Vector2f((window_width - text_entry_dimensions.x) / 2, window_height / 6));
+    text_entry.setPosition(sf::Vector2f((window_width - text_entry_dimensions.x) / 2, window_height / 6 + 100));
 
     sf::RectangleShape text_entered(text_entry_dimensions);
     text_entered.setFillColor(sf::Color::White);
-    text_entered.setPosition(sf::Vector2f((window_width - text_entry_dimensions.x) / 2, window_height / 2));
+    text_entered.setPosition(sf::Vector2f((window_width - text_entry_dimensions.x) / 2, window_height / 2 + 100));
+
+    sf::Vector2f button_dimensions(250, 100);
+    sf::RectangleShape button(button_dimensions);
+    button.setFillColor(sf::Color::Transparent);
+    button.setPosition(sf::Vector2f((window_width - button_dimensions.x) / 8, window_height / 16));
+    button.setOutlineColor(sf::Color::White);
+    button.setOutlineThickness(5.f);
 
     sf::Font font;
     sf::Text instructions_text;
@@ -82,14 +105,29 @@ int main() {
     sf::Text previous_phrase;
     sf::Text sentiment_score_text;
     std::string sentiment_score_string = "N/A";
+    sf::Text simple_algorithm;
+    sf::Text multinomial_algorithm;
+    std::string algorithm_path = "src/simple_algorithm.py";
 
-    initialize_text(window_width, window_height, text_entry, text_entered, font, instructions_text, input_text, score_notification, previous_phrase, sentiment_score_text);
+    initialize_text(window_width, window_height, text_entry, text_entered, font, instructions_text, input_text, score_notification, previous_phrase, sentiment_score_text, simple_algorithm, multinomial_algorithm);
 
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
+            }
+            if (event.type == sf::Event::MouseButtonPressed) {
+                if (event.mouseButton.button == sf::Mouse::Left) {
+                    if (simple_algorithm.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+                        button.setPosition(sf::Vector2f((window_width - button_dimensions.x) / 8, window_height / 16));
+                        algorithm_path = "src/simple_algorithm.py";
+                    }
+                    if (multinomial_algorithm.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+                        button.setPosition(sf::Vector2f(7 * (window_width - button_dimensions.x) / 8, window_height / 16));
+                        algorithm_path = "src/predict.py";
+                    }
+                }
             }
             if (event.type == sf::Event::TextEntered) {
                 if (event.text.unicode == '\b') {
@@ -106,18 +144,14 @@ int main() {
                 set_text_position(input_text, input_string);
             }
             if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Return) {
-                std::string command = "python C:\\Users\\readt\\source\\repos\\social-media-sentiment-analysis\\src\\predict.py " + input_string;
+                std::string command = "python " + algorithm_path + " " + input_string;
                 std::array<char, 128> buffer;
                 std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.c_str(), "r"), _pclose);
-                if (!pipe) {
-                    throw std::runtime_error("popen() failed!");
-                }
                 while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
                     sentiment_score_string = buffer.data();
                 }
                 sentiment_score_text.setString(sentiment_score_string);
                 sentiment_score_text.setOrigin(sentiment_score_text.getLocalBounds().left + sentiment_score_text.getLocalBounds().width / 2.0f, sentiment_score_text.getLocalBounds().top + sentiment_score_text.getLocalBounds().height / 2.0f);
-                //sentiment_score_text.setPosition(sf::Vector2f((window_width - sentiment_score_text.getPosition().x) / 2, 5 * window_height / 7 + sentiment_score_text.getPosition().y));
                 std::cout << sentiment_score_string << std::endl;
 
                 previous_phrase.setString(input_string);
@@ -134,6 +168,9 @@ int main() {
         window.draw(text_entered);
         window.draw(previous_phrase);
         window.draw(sentiment_score_text);
+        window.draw(button);
+        window.draw(simple_algorithm);
+        window.draw(multinomial_algorithm);
         window.display();
     }
     return 0;
