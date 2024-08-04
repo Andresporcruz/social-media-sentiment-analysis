@@ -3,8 +3,8 @@ import argparse
 import json
 
 def load_model():
-    model = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/sentiment_model.pkl')
-    vectorizer = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/vectorizer.pkl')
+    model = joblib.load('model/sentiment_model.pkl')
+    vectorizer = joblib.load('model/vectorizer.pkl')
     return model, vectorizer
 
 def predict(texts, model, vectorizer):
