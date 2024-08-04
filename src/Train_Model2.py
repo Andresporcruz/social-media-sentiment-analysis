@@ -1,21 +1,70 @@
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
+import re
+import string
+import joblib
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
-from sklearn.model_selection import GridSearchCV
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from imblearn.pipeline import Pipeline as ImbPipeline
-from imblearn.over_sampling import SMOTE
+from collections import defaultdict
 
-def load_data(subset_size=0.01):  # Default subset size is 1%
+
+class CustomWordWeightingAlgorithm:
+    def __init__(self):
+        self.word_weights = defaultdict(self.default_weight)
+        self.alpha = 1.0  # Smoothing factor
+
+    def default_weight(self):
+        return [0, 0]
+
+    def fit(self, X, y):
+        positive_count = 0
+        negative_count = 0
+
+        for text, sentiment in zip(X, y):
+            words = text.split()
+            for word in words:
+                if sentiment == 1:
+                    self.word_weights[word][0] += 1  # Positive sentiment
+                    positive_count += 1
+                else:
+                    self.word_weights[word][1] += 1  # Negative sentiment
+                    negative_count += 1
+
+        self.total_words = positive_count + negative_count
+        self.positive_prob = positive_count / self.total_words
+        self.negative_prob = negative_count / self.total_words
+
+    def predict(self, X):
+        predictions = []
+        for text in X:
+            pos_score = self.positive_prob
+            neg_score = self.negative_prob
+            words = text.split()
+            for word in words:
+                if word in self.word_weights:
+                    pos_score *= (self.word_weights[word][0] + self.alpha) / (
+                                self.total_words + self.alpha * len(self.word_weights))
+                    neg_score *= (self.word_weights[word][1] + self.alpha) / (
+                                self.total_words + self.alpha * len(self.word_weights))
+                else:
+                    pos_score *= self.alpha / (self.total_words + self.alpha * len(self.word_weights))
+                    neg_score *= self.alpha / (self.total_words + self.alpha * len(self.word_weights))
+            if pos_score > neg_score:
+                predictions.append(1)
+            else:
+                predictions.append(0)
+        return predictions
+
+
+def load_data():
     print("Loading data...")
-    X_train = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/X_train.csv')
-    X_test = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/X_test.csv')
-    y_train = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/y_train.csv')
-    y_test = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/y_test.csv')
+    X_train = pd.read_csv(
+        '/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/X_train.csv')
+    X_test = pd.read_csv(
+        '/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/X_test.csv')
+    y_train = pd.read_csv(
+        '/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/y_train.csv')
+    y_test = pd.read_csv(
+        '/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/y_test.csv')
     print("Data loaded.")
 
     print("Inspecting loaded data...")
@@ -32,13 +81,24 @@ def load_data(subset_size=0.01):  # Default subset size is 1%
     print(f"X_train length after dropping NA: {len(X_train)}, y_train length after dropping NA: {len(y_train)}")
     print(f"X_test length after dropping NA: {len(X_test)}, y_test length after dropping NA: {len(y_test)}")
 
-    print(f"Sampling {subset_size*100}% of the data for a subset.")
-    X_train_sample = X_train.sample(frac=subset_size, random_state=42)
-    y_train_sample = y_train.loc[X_train_sample.index]
-    X_test_sample = X_test.sample(frac=subset_size, random_state=42)
-    y_test_sample = y_test.loc[X_test_sample.index]
+    return X_train, X_test, y_train, y_test
 
-    return X_train_sample.squeeze(), X_test_sample.squeeze(), y_train_sample.squeeze(), y_test_sample.squeeze()
+
+def clean_text(text):
+    text = re.sub(r'http\S+', '', text)  # Remove URLs
+    text = re.sub(r'<.*?>', '', text)  # Remove HTML tags
+    text = text.translate(str.maketrans('', '', string.punctuation))  # Remove punctuation
+    text = text.lower()  # Convert to lower case
+    text = re.sub(r'\s+', ' ', text).strip()  # Remove extra white spaces
+    return text
+
+
+def preprocess_data(X):
+    print("Preprocessing text data...")
+    X['clean_text'] = X['text'].apply(clean_text)
+    print("Text data preprocessed.")
+    return X
+
 
 def align_data(X, y):
     print("Aligning X and y indices...")
@@ -48,36 +108,27 @@ def align_data(X, y):
     print(f"Aligned X length: {len(aligned_X)}, Aligned y length: {len(aligned_y)}")
     return aligned_X, aligned_y
 
+
 def train_model(X_train, y_train):
-    print("Setting up pipeline...")
-    pipeline = ImbPipeline([
-        ('tfidf', TfidfVectorizer(stop_words='english')),
-        ('smote', SMOTE(random_state=42)),
-        ('scaler', StandardScaler(with_mean=False)),
-        ('svm', SVC())
-    ])
+    print("Vectorizing training data...")
+    vectorizer = CountVectorizer(max_df=0.9, ngram_range=(1, 2))
+    X_train_bow = vectorizer.fit_transform(X_train.squeeze())
+    print("Training data vectorized.")
 
-    print("Setting up grid search...")
-    param_grid = {
-        'tfidf__max_df': [0.5, 0.7, 0.9],
-        'tfidf__ngram_range': [(1, 1), (1, 2), (1, 3)],
-        'svm__C': [0.1, 1, 10, 100],
-        'svm__kernel': ['linear', 'rbf', 'poly'],
-        'svm__gamma': ['scale', 'auto']
-    }
-
-    grid_search = GridSearchCV(pipeline, param_grid, cv=5, n_jobs=-1, verbose=2)
-
-    print("Training model with grid search...")
-    grid_search.fit(X_train, y_train)
-    print("Best hyperparameters:", grid_search.best_params_)
+    print("Training custom word weighting algorithm...")
+    model = CustomWordWeightingAlgorithm()
+    model.fit(X_train.squeeze(), y_train.squeeze())
     print("Model trained.")
+    return model, vectorizer
 
-    return grid_search.best_estimator_
 
-def evaluate_model(model, X_test, y_test):
+def evaluate_model(model, vectorizer, X_test, y_test):
+    print("Vectorizing test data...")
+    X_test_bow = vectorizer.transform(X_test.squeeze())
+    print("Test data vectorized.")
+
     print("Making predictions...")
-    y_pred = model.predict(X_test)
+    y_pred = model.predict(X_test.squeeze())
     print("Predictions made.")
 
     print("Evaluating model...")
@@ -89,8 +140,16 @@ def evaluate_model(model, X_test, y_test):
 
     return accuracy, precision, recall, cm
 
+
+def save_model(model, vectorizer, model_path='model/sentiment_model.pkl', vectorizer_path='model/vectorizer.pkl'):
+    joblib.dump(model, model_path)
+    joblib.dump(vectorizer, vectorizer_path)
+    print(f"Model saved to {model_path}")
+    print(f"Vectorizer saved to {vectorizer_path}")
+
+
 if __name__ == "__main__":
-    X_train, X_test, y_train, y_test = load_data(subset_size=0.005)  # Adjust subset size here
+    X_train, X_test, y_train, y_test = load_data()
 
     # Verify lengths before proceeding
     print("Checking lengths...")
@@ -105,13 +164,15 @@ if __name__ == "__main__":
         X_test, y_test = align_data(X_test, y_test)
 
     if len(X_train) == len(y_train) and len(X_test) == len(y_test):
-        model = train_model(X_train, y_train)
-        accuracy, precision, recall, cm = evaluate_model(model, X_test, y_test)
+        model, vectorizer = train_model(X_train, y_train)
+        accuracy, precision, recall, cm = evaluate_model(model, vectorizer, X_test, y_test)
 
         print(f"Accuracy: {accuracy}")
         print(f"Precision: {precision}")
         print(f"Recall: {recall}")
         print(f"Confusion Matrix: \n{cm}")
+
+        save_model(model, vectorizer)  # Save the model and vectorizer
     else:
         print(f"Length mismatch persists: X_train length: {len(X_train)}, y_train length: {len(y_train)}")
         print(f"X_test length: {len(X_test)}, y_test length: {len(y_test)}")

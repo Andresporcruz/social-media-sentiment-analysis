@@ -2,15 +2,15 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
+from custom_naive_bayes import CustomNaiveBayes
 import joblib
-
 
 def load_data():
     print("Loading data...")
-    X_train = pd.read_csv('data/X_train.csv')
-    X_test = pd.read_csv('data/X_test.csv')
-    y_train = pd.read_csv('data/y_train.csv')
-    y_test = pd.read_csv('data/y_test.csv')
+    X_train = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/X_train.csv')
+    X_test = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/X_test.csv')
+    y_train = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/y_train.csv')
+    y_test = pd.read_csv('/Users/andresportillo/Documents/UF Summer 2024/social-media-sentiment-analysis/data/y_test.csv')
     print("Data loaded.")
 
     print("Inspecting loaded data...")
@@ -29,7 +29,6 @@ def load_data():
 
     return X_train, X_test, y_train, y_test
 
-
 def align_data(X, y):
     print("Aligning X and y indices...")
     common_indices = X.index.intersection(y.index)
@@ -38,19 +37,17 @@ def align_data(X, y):
     print(f"Aligned X length: {len(aligned_X)}, Aligned y length: {len(aligned_y)}")
     return aligned_X, aligned_y
 
-
 def train_model(X_train, y_train):
     print("Vectorizing training data...")
-    vectorizer = TfidfVectorizer()
+    vectorizer = TfidfVectorizer(max_df=0.9, ngram_range=(1, 2))
     X_train_tfidf = vectorizer.fit_transform(X_train.squeeze())
     print("Training data vectorized.")
 
-    print("Training model...")
-    model = MultinomialNB()  # Or use SVC()
+    print("Training custom Naive Bayes model...")
+    model = CustomNaiveBayes(alpha=1.0)
     model.fit(X_train_tfidf, y_train.squeeze())
     print("Model trained.")
     return model, vectorizer
-
 
 def evaluate_model(model, vectorizer, X_test, y_test):
     print("Vectorizing test data...")
@@ -70,13 +67,11 @@ def evaluate_model(model, vectorizer, X_test, y_test):
 
     return accuracy, precision, recall, cm
 
-
 def save_model(model, vectorizer, model_path='model/sentiment_model.pkl', vectorizer_path='model/vectorizer.pkl'):
     joblib.dump(model, model_path)
     joblib.dump(vectorizer, vectorizer_path)
     print(f"Model saved to {model_path}")
     print(f"Vectorizer saved to {vectorizer_path}")
-
 
 if __name__ == "__main__":
     X_train, X_test, y_train, y_test = load_data()
