@@ -67,7 +67,7 @@ void initialize_text(const int& window_width, const int& window_height, const sf
     simple_algorithm.setPosition(sf::Vector2f(window_width / 5, 100));
 
     multinomial_algorithm.setFont(font);
-    multinomial_algorithm.setString("Multinomial\nAlgorithm");
+    multinomial_algorithm.setString("Naive Bayes\nAlgorithm");
     multinomial_algorithm.setCharacterSize(30);
     multinomial_algorithm.setFillColor(sf::Color::White);
     multinomial_algorithm.setStyle(sf::Text::Bold);
@@ -107,7 +107,8 @@ int main() {
     std::string sentiment_score_string = "N/A";
     sf::Text simple_algorithm;
     sf::Text multinomial_algorithm;
-    std::string algorithm_path = "src/simple_algorithm.py";
+    std::string algorithm_path = "src/predict.py";
+    std::string algorithm_selected = "simple";
 
     initialize_text(window_width, window_height, text_entry, text_entered, font, instructions_text, input_text, score_notification, previous_phrase, sentiment_score_text, simple_algorithm, multinomial_algorithm);
 
@@ -121,11 +122,11 @@ int main() {
                 if (event.mouseButton.button == sf::Mouse::Left) {
                     if (simple_algorithm.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
                         button.setPosition(sf::Vector2f((window_width - button_dimensions.x) / 8, window_height / 16));
-                        algorithm_path = "src/simple_algorithm.py";
+                        algorithm_selected = "simple";
                     }
                     if (multinomial_algorithm.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
                         button.setPosition(sf::Vector2f(7 * (window_width - button_dimensions.x) / 8, window_height / 16));
-                        algorithm_path = "src/predict.py";
+                        algorithm_selected = "nb";
                     }
                 }
             }
@@ -144,7 +145,7 @@ int main() {
                 set_text_position(input_text, input_string);
             }
             if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Return) {
-                std::string command = "python " + algorithm_path + " " + input_string;
+                std::string command = "python " + algorithm_path + " " + algorithm_selected + " " + input_string;
                 std::array<char, 128> buffer;
                 std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.c_str(), "r"), _pclose);
                 while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {

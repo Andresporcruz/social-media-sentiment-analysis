@@ -2,18 +2,24 @@ import joblib
 import argparse
 import json
 
-
 # Function to load the pre-trained model and vectorizer
-def load_model():
-    model = joblib.load('model/sentiment_model.pkl')
-    vectorizer = joblib.load('model/vectorizer.pkl')
+def load_model(model_to_load):
+    if model_to_load == "nb": # Load model based on option user selected
+        model = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/nb_sentiment_model.pkl')
+        vectorizer = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/nb_vectorizer.pkl')
+    else:
+        model = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/simple_sentiment_model.pkl')
+        vectorizer = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/simple_vectorizer.pkl')
     return model, vectorizer
 
 
 # Function to predict sentiments for given texts using the loaded model and vectorizer
-def predict(texts, model, vectorizer):
-    texts_tfidf = vectorizer.transform(texts)  # Transform texts to TF-IDF representation
-    predictions = model.predict(texts_tfidf)  # Predict sentiments
+def predict(texts, model, vectorizer, model_loaded):
+    if model_loaded == "nb": # Make prediction based on option user selected
+        texts_tfidf = vectorizer.transform(texts)  # Transform texts to TF-IDF representation
+        predictions = model.predict(texts_tfidf)  # Predict sentiments
+    else:
+        predictions = model.predict(texts) # Predict sentiments
     return predictions
 
 
@@ -23,18 +29,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('texts', nargs='+')  # Accept multiple text inputs
     args = parser.parse_args()
-    phrase = ' '.join(args.texts)  # Combine all input texts into a single phrase
+    phrase = ' '.join(args.texts[1:])  # Combine all input texts into a single phrase
+    model_requested = args.texts[0]
 
     # Load the model and vectorizer
-    model, vectorizer = load_model()
+    model, vectorizer = load_model(model_requested) # Use first input to determine model to run
 
     # Predict the sentiment of the input phrase
-    predictions = predict([phrase], model, vectorizer)
+    predictions = predict([phrase], model, vectorizer, model_requested)
 
     # Print the input text and its predicted sentiment
     for text, prediction in zip([phrase], predictions):
         print(f"Text: {text} -> Sentiment: {prediction}")
 
     # Convert prediction to a list and print as JSON
-    sentiment_scores = predictions.astype(int).tolist()
-    print(json.dumps(sentiment_scores[0]))
+    if model_requested == "nb":
+        sentiment_scores = predictions.astype(int).tolist()
+        print(json.dumps(sentiment_scores[0]))
+    else:
+        print(json.dumps(predictions[0]))
