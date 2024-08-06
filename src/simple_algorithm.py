@@ -12,7 +12,7 @@ if __name__ == "__main__":
     phrase = ' '.join(args.texts).lower()
     words = phrase.split(' ')
 
-    data_frame = pd.read_csv("C:/Users/readt/source/repos/social-media-sentiment-analysis/model/simple_algorithm_model.csv")
+    data_frame = pd.read_csv("model/simple_algorithm_model.csv")
     sentiment_dictionary = data_frame.to_dict(orient='list')
     sentiment_total = 0
     words_checked = 0
