@@ -18,5 +18,5 @@ def plot_wordcloud(text):
     plt.show()
 
 if __name__ == "__main__":
-    text_data = pd.read_csv('C:/Users/readt/source/repos/social-media-sentiment-analysis/data/nb_negative_predictions.csv')['clean_text'].str.cat(sep=' ')
+    text_data = pd.read_csv('data/nb_negative_predictions.csv')['clean_text'].str.cat(sep=' ')
     plot_wordcloud(text_data)
