@@ -1,6 +1,7 @@
 import joblib
 import argparse
 import json
+import re
 
 # Function to load the pre-trained model and vectorizer
 def load_model(model_to_load):
@@ -30,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('texts', nargs='+')  # Accept multiple text inputs
     args = parser.parse_args()
     phrase = ' '.join(args.texts[1:])  # Combine all input texts into a single phrase
+    phrase = re.sub(r"[^A-Za-z0-9]+", " ", phrase)
     model_requested = args.texts[0]
 
     # Load the model and vectorizer
