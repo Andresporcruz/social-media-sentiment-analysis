@@ -6,11 +6,11 @@ import re
 # Function to load the pre-trained model and vectorizer
 def load_model(model_to_load):
     if model_to_load == "nb": # Load model based on option user selected
-        model = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/nb_sentiment_model.pkl')
-        vectorizer = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/nb_vectorizer.pkl')
+        model = joblib.load('model/nb_sentiment_model.pkl')
+        vectorizer = joblib.load('model/nb_vectorizer.pkl')
     else:
-        model = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/simple_sentiment_model.pkl')
-        vectorizer = joblib.load('C:/Users/readt/source/repos/social-media-sentiment-analysis/model/simple_vectorizer.pkl')
+        model = joblib.load('model/simple_sentiment_model.pkl')
+        vectorizer = joblib.load('model/simple_vectorizer.pkl')
     return model, vectorizer
 
 
