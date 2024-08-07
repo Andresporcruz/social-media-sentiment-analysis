@@ -1,5 +1,18 @@
 # Social Media Sentiment Analysis
 
+## To run the code using the User Interface
+- Clone the github project to your local machine
+- Configure SFML to compile on your computer by following the instructions here: https://www.sfml-dev.org/tutorials/2.6/start-vc.php 
+- Ensure your working directory is set to "social-media-sentiment-analysis" and not that src/main.cpp contains all of the SFML code for the project
+- When you launch the SFML project the UI can be run and used
+
+## To run the code without configuring SFML
+- Clone the github project to your local machine
+- Set your working directory to "social-media-sentiment-analysis"
+- First run "python train_word_weighting_model.py" and "python train_nb_model.py" to train the models
+- Next use the command "python src/predict.py [simple or nb] [phrase]" to either run the simple or naive bayes algorithm to determine the sentiment of the input phrase
+- Run "python visuals/visualize_[positive or negative]_[simple or nb]" to generate a word cloud showing the most frequent words that appear in the positive or negative sentiment phrases determine by each algorithm
+
 ## Team Members
 - Maiah Jaffa
 - Andres Portillo
